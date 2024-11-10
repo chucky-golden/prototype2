@@ -11,13 +11,13 @@ export class User extends Document{
     @Prop({ required: false })
     name: string
 
-    @Prop({ unique: true })
+    @Prop({ unique: [true, 'Email Already Exist'] })
     readonly email: string
 
-    @Prop({ unique: true })
+    @Prop({ unique: [true, 'Username Already Exist'] })
     username: string
 
-    @Prop({ required: false })
+    @Prop({ unique: [true, 'Phone Number Already Exist'] })
     phone: string
 
     @Prop()
@@ -40,6 +40,8 @@ export class User extends Document{
     
     @Prop({ default: '' })
     suscription: String
+
+    validatePassword: (password: string) => Promise<boolean>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
