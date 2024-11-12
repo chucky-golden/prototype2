@@ -40,6 +40,9 @@ export class User extends Document{
     
     @Prop({ default: '' })
     suscription: String
+    
+    @Prop({ default: '' })
+    otp: String
 
     validatePassword: (password: string) => Promise<boolean>;
 }

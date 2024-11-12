@@ -14,4 +14,9 @@ export class UsersController {
     signIn(@Body() signInDto: {email: string, password: string}){
         return this.userService.loginAccount(signInDto)
     }
+
+    @Post('/forgot')
+    forgotPassword(@Body() forgotDto: {email: string}){
+        return this.userService.forgotPassword(forgotDto)
+    }
 }
