@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('api/users')
 export class UsersController {
@@ -18,5 +19,10 @@ export class UsersController {
     @Post('/forgot')
     forgotPassword(@Body() forgotDto: {email: string}){
         return this.userService.forgotPassword(forgotDto)
+    }
+
+    @Post('/reset')
+    reset(@Body() resetDto: {password: string, cpassword: string, otp: string}){
+        return this.userService.resetPassword(resetDto)
     }
 }

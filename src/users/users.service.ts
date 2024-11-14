@@ -24,7 +24,7 @@ export class UsersService {
             user.password = ''
             const token = await this.authService.generateToken({ id: user._id, type: 'user' })
 
-            return { message: 'successful', user, token }
+            return { status: 'successful', message: 'account created', user, token }
 
         }catch(error: any){
             if (error instanceof UnauthorizedException) {
@@ -57,9 +57,9 @@ export class UsersService {
             user.password = ''
             const token = await this.authService.generateToken({ id: user._id, type: 'user' })
 
-            return { message: 'successful', user, token }
+            return { status: 'successful', message: 'login successful', user, token }
         }catch(error: any){
-            if (error instanceof UnauthorizedException) {
+            if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
                 throw error;
             } else {
                 console.log('sign in ' + error);            
@@ -85,13 +85,55 @@ export class UsersService {
 
             let send = await this.sendMailService.sendMail(email, 'Password Recovery', num)
             if(send === true){
-                return { message: 'successful', email, num}
+                await this.userModel.updateOne({ email: email }, 
+                    {
+                        $set:{
+                            otp: num
+                        }
+                    }
+                )
+                return { status: 'successful',  message: 'otp sent to mail', email, num}
             }else{
                 throw new BadRequestException('error sending mail')
             }
         }catch(error: any){
-            console.log('forgot password ' + error);            
-            throw new InternalServerErrorException(`user cannot be created now`);
+            if (error instanceof BadRequestException || error instanceof NotFoundException) {
+                throw error;
+            } else {
+                console.log('sign in: ' + error);            
+                throw new InternalServerErrorException(`user cannot be created now`);
+            }  
+        }
+    }
+
+    async resetPassword( resetDto: {password: string, cpassword: string, otp: string}){
+        try{
+            const { otp, password, cpassword } = resetDto
+
+            const user = await this.userModel.findOne({ otp: otp });
+
+            if (password != cpassword) {
+                throw new BadRequestException('password do not match')
+            }
+
+
+            if (!user) {
+                throw new NotFoundException('invalid or expired otp')
+            }
+
+            user.password = password;
+            user.otp = ''
+
+            user.save({ validateModifiedOnly: true, validateBeforeSave: false });
+            
+            return { status: 'successful', message: 'password reset successful',}
+        }catch(error: any){
+            if (error instanceof BadRequestException || error instanceof NotFoundException) {
+                throw error;
+            } else {
+                console.log('sign in: ' + error);            
+                throw new InternalServerErrorException(`user cannot be created now`);
+            }  
         }
     }
 }
